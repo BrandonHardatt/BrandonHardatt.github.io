@@ -1,53 +1,24 @@
-// Detect if the device is mobile
-const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i; // Regular expression to detect mobile devices
+import './style.css'
+import javascriptLogo from './javascript.svg'
+import viteLogo from '/vite.svg'
+import { setupCounter } from './counter.js'
 
-const isMobile = () => mobileRegex.test(navigator.userAgent);
+document.querySelector('#app').innerHTML = `
+  <div>
+    <a href="https://vitejs.dev" target="_blank">
+      <img src="${viteLogo}" class="logo" alt="Vite logo" />
+    </a>
+    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
+      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
+    </a>
+    <h1>Hello Vite!</h1>
+    <div class="card">
+      <button id="counter" type="button"></button>
+    </div>
+    <p class="read-the-docs">
+      Click on the Vite logo to learn more
+    </p>
+  </div>
+`
 
-if (isMobile()) {
-    
-    document.getElementById('mobile-message').style.display = 'block'; // Show the mobile message and 
-    document.querySelector('#bg').style.display = 'none';              // hide the canvas
-    throw new Error('Mobile viewing error');                           // throw error to stop code execution
-}
-
-
-const scene = new THREE.Scene(); // Scene will This is where you place objects, lights and cameras.
-
-// Camera setup
-const fov = 75;                                         // Camera frustum vertical field of view. 
-const aspect = window.innerWidth / window.innerHeight;  // Camera frustum aspect ratio. 
-const near = 0.1;                                       // Camera frustum near plane.
-const far = 1000;                                       // Camera frustum far plane.
-
-const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-
-// Renderer setup
-const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#bg') });
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
-
-// Camera position
-camera.position.setZ(30);
-
-// Add a torus
-const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
-const material = new THREE.MeshBasicMaterial({ color: 0xFF6347, wireframe: true });
-const torus = new THREE.Mesh(geometry, material);
-scene.add(torus);
-
-// Animation loop
-const animate = () => {
-    requestAnimationFrame(animate);
-    torus.rotation.x += 0.01; // Add rotation to the torus for some animation
-    torus.rotation.y += 0.01;
-    renderer.render(scene, camera);
-};
-
-animate();
-
-// Adjust camera and renderer on window resize
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
+setupCounter(document.querySelector('#counter'))
