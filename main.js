@@ -1,14 +1,11 @@
-// No need to import 'style.css' in a static setup
-// Remove the import statement for Three.js
-
-// Basic Three.js setup
-const scene = new THREE.Scene();
+const scene = new THREE.Scene(); // Scene will This is where you place objects, lights and cameras.
 
 // Camera setup
-const fov = 75;
-const aspect = window.innerWidth / window.innerHeight;
-const near = 0.1;
-const far = 1000;
+const fov = 75;                                         // Camera frustum vertical field of view. 
+const aspect = window.innerWidth / window.innerHeight;  // Camera frustum aspect ratio. 
+const near = 0.1;                                       // Camera frustum near plane.
+const far = 1000;                                       // Camera frustum far plane.
+
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
 // Renderer setup
