@@ -4,6 +4,20 @@ canvas {
   left: 0;
 }
 
+#mobile-message {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    z-index: 1000;
+}
+
 
 :root {
   --dark-bg: rgba(15, 15, 15, 0.95);

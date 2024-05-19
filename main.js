@@ -1,3 +1,16 @@
+// Detect if the device is mobile
+const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i; // Regular expression to detect mobile devices
+
+const isMobile = () => mobileRegex.test(navigator.userAgent);
+
+if (isMobile()) {
+    
+    document.getElementById('mobile-message').style.display = 'block'; // Show the mobile message and 
+    document.querySelector('#bg').style.display = 'none';              // hide the canvas
+    throw new Error('Mobile viewing error');                           // throw error to stop code execution
+}
+
+
 const scene = new THREE.Scene(); // Scene will This is where you place objects, lights and cameras.
 
 // Camera setup
@@ -25,6 +38,8 @@ scene.add(torus);
 // Animation loop
 const animate = () => {
     requestAnimationFrame(animate);
+    torus.rotation.x += 0.01; // Add rotation to the torus for some animation
+    torus.rotation.y += 0.01;
     renderer.render(scene, camera);
 };
 
