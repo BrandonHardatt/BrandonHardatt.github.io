@@ -54,15 +54,16 @@ scene.add(torus);
 
 // Lighting
 const pointLight = new THREE.PointLight(0xffffff);
-pointLight.position.set(20,20,20);
+pointLight.position.set(5,5,5);
 const ambientLight = new THREE.AmbientLight(0xffffff);
 scene.add(pointLight, ambientLight);
 
-const gridHelper = new THREE.GridHelper(200, 50);
-const lightHelper = new THREE.PointLightHelper(pointLight);
-scene.add(lightHelper, gridHelper);
+//Helpers
+// const gridHelper = new THREE.GridHelper(200, 50);
+// const lightHelper = new THREE.PointLightHelper(pointLight);
+// scene.add(lightHelper, gridHelper);
 
-const controls = new OrbitControls(camera, renderer.domElement);
+// const controls = new OrbitControls(camera, renderer.domElement);
 
 
 const addStars = () => {
@@ -76,7 +77,7 @@ const addStars = () => {
     scene.add(star);
 };
 
-Array(200).fill().forEach(addStars);
+Array(300).fill().forEach(addStars);
 
 
 // Background
@@ -143,7 +144,7 @@ const animate = () => {
     torus.rotation.y += 0.005;
     torus.rotation.z += 0.01;
 
-    controls.update();
+    // controls.update();
 
     // Render the background scene
     renderer.autoClear = false;
