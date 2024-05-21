@@ -1,37 +1,22 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import './styles.css';
-import spaceImage from './assets/images/space.jpg';
-import brandonImage from './assets/images/brandon.jpg';
-import moonImage from './assets/images/moon.jpg';
-import normalImage from './assets/images/normal.jpg';
+import { handleMobileView } from './mobileDetection.js';
+import { spaceTexture, brandonTexture, moonTexture, normalTexture } from './assetLoader.js';
 
-// Detect if the device is mobile
-const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i; // Regular expression to detect mobile devices
+// Scale adjustment
+const adjustBackgroundScale = () =>  backgroundMesh.scale.set(getAspectRatio(), 1, 1);
 
-const isMobile = () => mobileRegex.test(navigator.userAgent);
 
-if (isMobile()) {
-    document.getElementById('mobile-message').style.display = 'block'; // Show the mobile message and 
-    document.querySelector('#bg').style.display = 'none';              // hide the canvas
-    throw new Error('Mobile viewing error');                           // throw error to stop code execution
-}
+handleMobileView(); // Call the function to handle mobile view
 
 const getAspectRatio = () => window.innerWidth / window.innerHeight;
-
-// Load Textures
-const textureLoader = new THREE.TextureLoader();
-const spaceTexture = textureLoader.load(spaceImage, () =>  adjustBackgroundScale());
-const brandonTexture = textureLoader.load(brandonImage);
-const moonTexture = textureLoader.load(moonImage);
-const normalTexture = textureLoader.load(normalImage);
-
 
 const scene = new THREE.Scene(); // Scene will This is where you place objects, lights and cameras.
 
 // Camera setup
 const fov = 75;                                         // Camera frustum vertical field of view. 
-const aspect = getAspectRatio();  // Camera frustum aspect ratio. 
+const aspect = getAspectRatio();                        // Camera frustum aspect ratio. 
 const near = 0.1;                                       // Camera frustum near plane.
 const far = 1000;                                       // Camera frustum far plane.
 
@@ -46,11 +31,17 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 camera.position.setX(-3);
 camera.position.setZ(30);
 
-// Add a torus
-const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
-const material = new THREE.MeshStandardMaterial({ color: 0xFF6347 });
-const torus = new THREE.Mesh(geometry, material);
-scene.add(torus);
+// Initialize a mesh with MeshStandardMaterial and a specifiey geometry and add it to the scene   
+const initStandardObject = (geometry, meshParam) => {
+    const material = new THREE.MeshStandardMaterial(meshParam);
+    const object = new THREE.Mesh(geometry, material);
+    scene.add(object);
+    return object;
+};
+
+const torus = initStandardObject(new THREE.TorusGeometry(10, 3, 16, 100), { color: 0xABCD90}) // Add a torus
+
+ 
 
 // Lighting
 const pointLight = new THREE.PointLight(0xffffff);
@@ -62,63 +53,48 @@ scene.add(pointLight, ambientLight);
 // const gridHelper = new THREE.GridHelper(200, 50);
 // const lightHelper = new THREE.PointLightHelper(pointLight);
 // scene.add(lightHelper, gridHelper);
-
 // const controls = new OrbitControls(camera, renderer.domElement);
 
 
-const addStars = () => {
-    const geometry = new THREE.SphereGeometry(0.25, 24, 24);
-    const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    const star = new THREE.Mesh(geometry, material);
-
+const addPlanets = () => {
+    // Generate a random hex color and ensure it is always 6 characters
+    const colorHex = `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+    
+    // Create a planet with the generated color
+    const star = initStandardObject(new THREE.SphereGeometry(0.25, 24, 24), { color: colorHex });
+    
+    // Generate random positions for the planet
     const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
-
     star.position.set(x, y, z);
-    scene.add(star);
 };
 
-Array(300).fill().forEach(addStars);
+Array(300).fill().forEach(addPlanets); // Create 300 stars with random colors
 
 
 // Background
-
-// Scale adjustment
-const adjustBackgroundScale = () =>  backgroundMesh.scale.set(getAspectRatio(), 1, 1);
-
-// Load the background texture
-
 const backgroundMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(2, 2),
     new THREE.MeshBasicMaterial({ map: spaceTexture })
 );
+
 backgroundMesh.material.depthTest = false;
 backgroundMesh.material.depthWrite = false;
 
-// Create a scene for the background
 const backgroundScene = new THREE.Scene();
 const backgroundCamera = new THREE.Camera();
 backgroundScene.add(backgroundMesh);
 
 // Avatar
-const brandon = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 3), new THREE.MeshBasicMaterial({ map: brandonTexture }));
-scene.add(brandon);
-
-// Moon
-
-const moon = new THREE.Mesh(
-  new THREE.SphereGeometry(3, 32, 32),
-  new THREE.MeshStandardMaterial({ map: moonTexture, normalMap: normalTexture }));
-
-scene.add(moon);
-
-moon.position.z = 30;
-moon.position.setX(-10);
-
+const brandon = initStandardObject(new THREE.BoxGeometry(3, 3, 3), { map: brandonTexture }); 
 brandon.position.z = -5;
 brandon.position.x = 2;
 
-// Scroll Animation
+// Moon
+const moon = initStandardObject(new THREE.SphereGeometry(3, 32, 32), { map: moonTexture, normalMap: normalTexture }); 
+moon.position.z = 30;
+moon.position.setX(-10);
 
+// Scroll Animation
 const moveCamera = () => {
     const t = document.body.getBoundingClientRect().top;
     moon.rotation.x += 0.05;
@@ -133,9 +109,8 @@ const moveCamera = () => {
     camera.rotation.y = t * -0.0002;
   }
   
-  document.body.onscroll = moveCamera;
-  moveCamera();
-
+document.body.onscroll = moveCamera;
+moveCamera();
 
 // Animation loop
 const animate = () => {
@@ -146,18 +121,15 @@ const animate = () => {
 
     // controls.update();
 
-    // Render the background scene
     renderer.autoClear = false;
     renderer.clear();
-    renderer.render(backgroundScene, backgroundCamera);
-
-    // Render the main scene
-    renderer.render(scene, camera);
+    renderer.render(backgroundScene, backgroundCamera); // Render the background scene
+    renderer.render(scene, camera, backgroundScene);    // Render the main scene
 };
 
 // Adjust camera and renderer on window resize
 window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = getAspectRatio();
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     adjustBackgroundScale();

@@ -14,7 +14,7 @@ export default {
                 use: ['style-loader', 'css-loader'],
             },
             {
-                test: /\.(png|svg|jpg|jpeg|gif)$/i,
+                test: /\.(png|svg|jpg|jpeg|gif|ico|fbx)$/i,
                 type: 'asset/resource',
             },
         ],
@@ -22,6 +22,7 @@ export default {
     plugins: [
         new HtmlWebpackPlugin({
             template: './src/index.html',
+            favicon: './src/assets/icons/favicon.ico',
         }),
     ],
     devServer: {
