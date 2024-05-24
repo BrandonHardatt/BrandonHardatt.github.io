@@ -1,7 +1,27 @@
+:root {
+  --dark-bg: rgba(15, 15, 15, 0.95);
+  --spacing: 350px;
+  --global-font: 'Exo', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  font-family: var(--global-font); /* Apply the futuristic font to the entire body */
+
+  /* Example of styling headers with the new font */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--global-font);
+  }
+}
+
 canvas {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
+  z-index: 1; /* Ensure canvas is behind the main content */
 }
 
 #mobile-message {
@@ -19,14 +39,7 @@ canvas {
 }
 
 
-:root {
-  --dark-bg: rgba(15, 15, 15, 0.95);
-  --spacing: 350px;
 
-  font-family: brandon-grotesque, sans-serif;
-  font-weight: 400;
-  font-style: normal;
-}
 
 
 main {
@@ -43,7 +56,7 @@ main {
 }
 
 h1, h2, h3, blockquote {
-  font-family: elevon, sans-serif;
+  font-family: var(--global-font);
   font-weight: 700;
   font-style: normal;
 }

@@ -2,7 +2,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import './styles.css';
 import { handleMobileView } from './mobileDetection.js';
-import { spaceTexture, brandonTexture, moonTexture, normalTexture } from './assetLoader.js';
+import { spaceTexture, moonTexture, normalTexture, cloudTexture, lavaTexture , rockTexture, rockFont } from './assetLoader.js';
+import { vertexShader } from './vertexShader.js';
+import { fragmentShader } from './fragmentShader.js';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+import backgroundAudio from './assets/audio/background.wav'; // Import the audio file
+
+const clock = new THREE.Clock(); // Ensure clock is created
 
 // Scale adjustment
 const adjustBackgroundScale = () =>  backgroundMesh.scale.set(getAspectRatio(), 1, 1);
@@ -39,9 +45,104 @@ const initStandardObject = (geometry, meshParam) => {
     return object;
 };
 
-const torus = initStandardObject(new THREE.TorusGeometry(10, 3, 16, 100), { color: 0xABCD90}) // Add a torus
+// torus
+lavaTexture.colorSpace = THREE.SRGBColorSpace;
+cloudTexture.wrapS = cloudTexture.wrapT = THREE.RepeatWrapping;
+lavaTexture.wrapS = lavaTexture.wrapT = THREE.RepeatWrapping;
 
- 
+const uniforms = {
+  fogDensity: { value: 0.55 },
+  fogColor: { value: new THREE.Vector3(0, 0, 0) },
+  time: { value: 1.0 },
+  uvScale: { value: new THREE.Vector2(3.0, 1.0) },
+  texture1: { value: cloudTexture },
+  texture2: { value: lavaTexture }
+};
+
+const lavaMaterial = new THREE.ShaderMaterial({
+  uniforms: uniforms,
+  vertexShader: vertexShader,
+  fragmentShader: fragmentShader
+});
+
+const torusGeometry = new THREE.TorusGeometry(10, 3, 16, 100);
+const torus = new THREE.Mesh(torusGeometry, lavaMaterial);
+scene.add(torus);
+
+// Rock
+const createRockSlab = (width, height, depth, texture) => {
+  const geometry = new THREE.BoxGeometry(width, height, depth);
+  const material = new THREE.MeshStandardMaterial({ map: texture });
+  const slab = new THREE.Mesh(geometry, material);
+  return slab;
+};
+
+const createText = (text, font, size, height) => {
+  const textGeometry = new TextGeometry(text, {
+    font: rockFont,
+    size: size,
+    depth: height,
+  });
+  const textMaterial = new THREE.MeshStandardMaterial({ color: 0xc9c9c9 });
+  const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+  return textMesh;
+};
+// Size of the slab: [width, height, depth]
+// Position of the slab: [x, y, z]
+// Text content to display on the slab
+// Position of the text: [x, y, z]
+const slabData = [
+  {
+    slabSize: [6, 3, 1],
+    slabPosition: [-3, 0, -3],
+    text: 'Brandon Hardatt \nFull Stack Developer \nAI \nData Science \nGame Developer',
+    textPosition: [-5.3, 0.9, -2],
+  },
+  {
+    slabSize: [6, 1, 1],
+    slabPosition: [-3, 0, 2],
+    text: 'Solving tough problems \nwith innovative tech',
+    textPosition: [-5.3, 0.1, 3],
+  },
+  {
+    slabSize: [12, 5, 1],
+    slabPosition: [-3, 0, 14],
+    text: "Hi Im Brandon Hardatt \nA recent graduate from MUN with a BSc in Computer \nScience my academic and professional journey has been \ndeeply intertwined with developing innovative solutions \nthrough technology I have gained proficiency in various \nAI fields \n\nMy academic pursuits also led me to gain a good \nfoundation in game programming and full stack \ndevelopment",
+    textPosition: [-8, 1.7, 15],
+  },
+  // Add more slabs and texts as needed
+];
+
+slabData.forEach(({ slabSize, slabPosition, text, textPosition }) => {
+  const [slabWidth, slabHeight, slabDepth] = slabSize;
+  const [slabX, slabY, slabZ] = slabPosition;
+  const [textX, textY, textZ] = textPosition;
+
+  // Create and position the slab
+  const slab = createRockSlab(slabWidth, slabHeight, slabDepth, rockTexture);
+  slab.position.set(slabX, slabY, slabZ);
+  scene.add(slab);
+
+  // Create and position the text
+  const textMesh = createText(text, rockFont, 0.2, 0.01);
+  textMesh.position.set(textX, textY, textZ);
+  scene.add(textMesh);
+});
+
+// Audio
+const audio = document.getElementById('background-audio');
+audio.src = backgroundAudio;
+audio.loop = true;
+
+// Start audio on page load
+window.addEventListener('load', () => {
+  audio.play().catch(error => {
+    console.log('Autoplay was prevented:', error);
+    // Optionally, you can show a play button to let the user start the audio
+  });
+});
+
+
 
 // Lighting
 const pointLight = new THREE.PointLight(0xffffff);
@@ -55,14 +156,14 @@ scene.add(pointLight, ambientLight);
 // scene.add(lightHelper, gridHelper);
 // const controls = new OrbitControls(camera, renderer.domElement);
 
-
 const addPlanets = () => {
     // Generate a random hex color and ensure it is always 6 characters
     const colorHex = `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
     
     // Create a planet with the generated color
-    const star = initStandardObject(new THREE.SphereGeometry(0.25, 24, 24), { color: colorHex });
-    
+    const starGeometry = new THREE.SphereGeometry(0.25, 24, 24);
+    const star = new THREE.Mesh(starGeometry, lavaMaterial);
+    scene.add(star);
     // Generate random positions for the planet
     const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(100));
     star.position.set(x, y, z);
@@ -84,29 +185,23 @@ const backgroundScene = new THREE.Scene();
 const backgroundCamera = new THREE.Camera();
 backgroundScene.add(backgroundMesh);
 
-// Avatar
-const brandon = initStandardObject(new THREE.BoxGeometry(3, 3, 3), { map: brandonTexture }); 
-brandon.position.z = -5;
-brandon.position.x = 2;
-
 // Moon
 const moon = initStandardObject(new THREE.SphereGeometry(3, 32, 32), { map: moonTexture, normalMap: normalTexture }); 
 moon.position.z = 30;
 moon.position.setX(-10);
+  
 
 // Scroll Animation
 const moveCamera = () => {
     const t = document.body.getBoundingClientRect().top;
+    
     moon.rotation.x += 0.05;
     moon.rotation.y += 0.075;
     moon.rotation.z += 0.05;
-  
-    brandon.rotation.y += 0.01;
-    brandon.rotation.z += 0.01;
-  
+    
     camera.position.z = t * -0.01;
-    camera.position.x = t * -0.0002;
-    camera.rotation.y = t * -0.0002;
+    // camera.position.x = t * -0.0002;
+    // camera.rotation.y = t * -0.0002;
   }
   
 document.body.onscroll = moveCamera;
@@ -118,6 +213,9 @@ const animate = () => {
     torus.rotation.x += 0.01;
     torus.rotation.y += 0.005;
     torus.rotation.z += 0.01;
+
+    const delta = clock.getDelta();
+    uniforms.time.value += delta;
 
     // controls.update();
 
